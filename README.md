@@ -6,4 +6,6 @@ Implementation of Alessandro Ferrarini soccer decoder
 
 How to build
 
-> g++ -g -o out.exe *.cpp ./headers/*.hpp ./classes/*.cpp
+> g++ -g -o out.exe *.cpp ./headers/*.hpp ./classes/*.cpp\
+
+![output.png](https://github.com/RSA-encryption/SoccerDecoder/blob/main/output.png)
