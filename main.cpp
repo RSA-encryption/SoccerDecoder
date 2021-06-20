@@ -18,9 +18,7 @@ int main() {
 
     srand(time(NULL));
     unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-    std::uniform_int_distribution<int> uniInt(1,9);
     std::chi_squared_distribution<float> uniDub(1.0f);
-    std::uniform_real_distribution<float> expRn(1.0f, 40.0f);
     std::default_random_engine gen(seed);
 
     auto start = std::chrono::high_resolution_clock::now();
