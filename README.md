@@ -6,4 +6,4 @@ Implementation of Alessandro Ferrarini soccer decoder
 
 How to build
 
-> g++ -g -o out.exe *.cpp ./headers/*.hpp ./classes/*.cpp -Ofast
+> g++ -g -o out.exe *.cpp ./headers/*.hpp ./classes/*.cpp
