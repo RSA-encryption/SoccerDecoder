@@ -95,7 +95,7 @@ int main(int argc, char *argv[])
     {
         for (auto &var : chunks(count))
         {
-            Threads.push_back(std::thread([&]
+            Threads.push_back(std::thread([=]
                                           { func(APlayers, BPlayers, var); }));
         }
         for (auto &t : Threads)
