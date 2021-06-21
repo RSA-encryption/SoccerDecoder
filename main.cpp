@@ -42,11 +42,11 @@ std::vector<int> chunks(int count)
     std::vector<int> chunk;
     int total = 0;
     for (size_t i = 0; i < TCount; i++){
-        chunk.push_back((int)std::floor(count) / (TCount + 1));
-        total += (int)std::floor(count) / (TCount + 1);
+        chunk.push_back(std::floor(count) / (TCount + 1));
+        total += std::floor(count / (TCount + 1));
     }
-    if ((int)std::floor(count) - total != 0)
-        chunk.push_back((int)std::floor(count) - total);
+    if (std::floor(count) - total != 0)
+        chunk.push_back(count - total);
     return chunk;
 }
 
