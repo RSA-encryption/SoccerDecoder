@@ -18,15 +18,16 @@
 unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
 auto TCount = std::thread::hardware_concurrency();
 std::atomic<int> aw{0}, dw{0}, bw{0};
+std::mutex l;
 std::chi_squared_distribution<float> uniDub(1.0f);
 std::default_random_engine gen(seed);
 
 void func(std::vector<FieldUnit::Player> APlayers, std::vector<FieldUnit::Player> BPlayers, int chunk)
 {
     srand(time(NULL));
-    for (size_t i = 0; i < chunk; i++){
-        Match::Team a("Cheese Cakes", 0.35f, 3.0f, 2.0f, 0.0f, APlayers, FieldUnit::Player(8.0f, uniDub(gen), "Rofl", FieldUnit::Player::GOALKEEPER), Match::Team::Formations::_4_4_2);
-        Match::Team b("Goed God", 0.2f, 2.0f, 1.0f, 0.0f, BPlayers, FieldUnit::Player(9.0f, uniDub(gen), "Lmao", FieldUnit::Player::GOALKEEPER), Match::Team::Formations::_4_4_2);
+	Match::Team a("Cheese Cakes", 0.35f, 3.0f, 2.0f, 0.0f, APlayers, FieldUnit::Player(8.0f, uniDub(gen), "Rofl", FieldUnit::Player::GOALKEEPER), Match::Team::Formations::_4_4_2);
+    Match::Team b("Goed God", 0.2f, 2.0f, 1.0f, 0.0f, BPlayers, FieldUnit::Player(9.0f, uniDub(gen), "Lmao", FieldUnit::Player::GOALKEEPER), Match::Team::Formations::_4_4_2);
+	for (size_t i = 0; i < chunk; i++){
         Match::FaceOff PlayOff(a, b);
 
         PlayOff.Simulate();
