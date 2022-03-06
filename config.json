@@ -1,0 +1,17 @@
+{
+   "CPP":{
+      "project":{
+         "isCompiledLang":true,
+         "path":"projects\\CPP",
+         "projectFile":"VS_SD.sln",
+         "launchArguments": "",
+         "isRelative":true
+      },
+      "translator":{
+         "path":"translators\\MSBuild\\Current\\Bin\\msbuild.exe",
+         "arguments":"/p:Configuration=Release /fl /flp:logfile=%projectdir%build.log;verbosity=normal",
+         "standardOutput":false,
+         "isRelative":true
+      }
+   }
+}
