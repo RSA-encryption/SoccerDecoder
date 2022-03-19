@@ -5,7 +5,7 @@
 
 namespace Match
 {
-	Team::Team(std::string name, FieldType field, std::vector<FieldUnit::Player> players, FieldUnit::Player goalKeeper, Formations formation)
+	Team::Team(std::string name, FieldType field, const std::vector<FieldUnit::Player>& players, const FieldUnit::Player& goalKeeper, Formations formation)
 	{
 		assert(players.size() + 1 > 10);
 
@@ -26,29 +26,49 @@ namespace Match
 	{
 		return this->GetPlayers().size();
 	}
+	FieldUnit::Player Team::GetShootingPlayer() {
+		std::default_random_engine generator;
+		FieldUnit::Player::PositionType r;
+		if (true) {
+			std::discrete_distribution<int> distribution{1,3,3,3,2,2,2,2,2,2};
+			r = static_cast<FieldUnit::Player::PositionType>(distribution(generator));
+		} else {
+			std::discrete_distribution<int> distribution{ 3,3,3,2,2,2,2,2,2,2 };
+			r = static_cast<FieldUnit::Player::PositionType>(distribution(generator));
+		}
+		return this->GetRandomPlayerOfType(r);
+	}
+	FieldUnit::Player Team::GetRandomPlayerOfType(FieldUnit::Player::PositionType type) {
+		std::vector<FieldUnit::Player> vec;
+		for (auto& var : this->GetPlayers())
+		{
+			if (var.GetPosition() == type) vec.push_back(var);
+		}
+		return vec.at(rand() % vec.size());
+	}
 	void Team::CalculateTeamRating() 
 	{
 		double GK = 0, D = 0, M = 0, S = 0;
-		bool isHomeField = this->GetFieldType() == Match::Team::HOME ? true : false;
+		bool isHomeField = this->GetFieldType() == Match::Team::FieldType::HOME ? true : false;
 		for (int i = 0; i < this->GetPlayerCount(); i++)
 		{
 			FieldUnit::Player p = this->GetPlayerByIndex(i);
 			switch (p.GetPosition())
 			{
-			case FieldUnit::Player::GOALKEEPER:
+			case FieldUnit::Player::PositionType::GOALKEEPER:
 				GK = p.GetRating();
 				break;
-			case FieldUnit::Player::MIDFIELDER:
+			case FieldUnit::Player::PositionType::MIDFIELDER:
 			{
 				M += p.GetRating() + (isHomeField) ? 0.1 : 0;
 				break;
 			}
-			case FieldUnit::Player::STRIKERS:
+			case FieldUnit::Player::PositionType::STRIKERS:
 			{
 				S += p.GetRating() + (isHomeField) ? 0.1 : 0;
 				break;
 			}
-			case FieldUnit::Player::DEFENDER:
+			case FieldUnit::Player::PositionType::DEFENDER:
 				D += p.GetRating() + (isHomeField) ? 0.1 : 0;
 				break;
 			default:

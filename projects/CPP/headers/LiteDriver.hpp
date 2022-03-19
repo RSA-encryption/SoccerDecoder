@@ -15,7 +15,7 @@ namespace DB {
 	class LiteDriver {
 	public:
 		LiteDriver() = default;
-		LiteDriver(std::string& url);
+		LiteDriver(std::string url);
 		~LiteDriver();
 
 		char* msg = nullptr;
@@ -39,16 +39,18 @@ namespace DB {
 		void execSingleStmt(const std::string& stmt, bool out = false);
 		void getRawStoragePtr(const Storage* storage, bool nullStoragePtr = true);
 		const Storage& getStorageRefference();
-		static const std::string GetStringFromRow(const Storage& vec, const std::string s);
-		static const double GetDoubleFromRow(const Storage& vec, const std::string s);
+		static const std::string getStringFromRow(const Storage& vec, const std::string s, const int row);
+		static const double getDoubleFromRow(const Storage& vec, const std::string s, const int row);
+		static const int getIntegerFromRow(const Storage& vec, const std::string s, const int row);
 	private:
 		int code;
 		std::string loc;
-		sqlite3* db;
-		Storage* storage;
+		sqlite3* db = nullptr;
+		Storage* storage = nullptr;
 
 		static int callback(void** NotUsed, int argc, char** argv, char** azColName);
 		static bool isDouble(const char* c);
+		static bool isInteger(const std::string& s);
 	};
 
 }

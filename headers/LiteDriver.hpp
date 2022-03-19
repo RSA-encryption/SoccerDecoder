@@ -39,8 +39,8 @@ namespace DB {
 		void execSingleStmt(const std::string& stmt, bool out = false);
 		void getRawStoragePtr(const Storage* storage, bool nullStoragePtr = true);
 		const Storage& getStorageRefference();
-		static const std::string GetStringFromRow(const Storage& vec, const std::string s);
-		static const double GetDoubleFromRow(const Storage& vec, const std::string s);
+		static const std::string getStringFromRow(const Storage& vec, const std::string s, const int row);
+		static const double getDoubleFromRow(const Storage& vec, const std::string s, const int row);
 	private:
 		int code;
 		std::string loc;

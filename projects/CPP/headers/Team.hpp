@@ -10,30 +10,32 @@ namespace Match
     class Team
     {
     public:
-		enum FieldType {
+		enum class FieldType {
 			HOME,
 			AWAY
 		};
 
-        enum Formations
+        enum class Formations
         {
-            _5_3_2,
-            _5_4_1,
-            _4_5_1,
-			_4_4_2,
-            _3_5_2,
-			_4_3_3,
-			_3_4_3
+            _5_3_2 = 532,
+            _5_4_1 = 541,
+            _4_5_1 = 451,
+			_4_4_2 = 442,
+            _3_5_2 = 352,
+			_4_3_3 = 433,
+			_3_4_3 = 343
         };
 
         Team() = default;
-        Team(std::string name, FieldType field, std::vector<FieldUnit::Player> players, FieldUnit::Player goalKeeper, Formations formation);
+        Team(std::string name, FieldType field, const std::vector<FieldUnit::Player>& players, const FieldUnit::Player& goalKeeper, Formations formation);
 
         size_t GetPlayerCount();
         FieldUnit::Player GetPlayerByIndex(int i);
         void CalculateTeamRating();
         void ApplyDecayAll();
         void Reset();
+        FieldUnit::Player GetShootingPlayer();
+        FieldUnit::Player GetRandomPlayerOfType(FieldUnit::Player::PositionType type);
 
         double GetMidFieldSkill() const { return midFieldSkill; }
         void SetMidFieldSkill(double val) { midFieldSkill = val; }

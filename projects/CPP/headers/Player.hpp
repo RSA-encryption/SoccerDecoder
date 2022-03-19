@@ -8,8 +8,8 @@ namespace FieldUnit
     class Player
     {
     public:
-        enum PositionType {
-            GOALKEEPER,
+        enum class PositionType {
+            GOALKEEPER = 0,
             DEFENDER,
             STRIKERS,
             MIDFIELDER

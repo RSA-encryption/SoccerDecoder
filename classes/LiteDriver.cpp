@@ -35,18 +35,20 @@ namespace DB {
 		if (nullStoragePtr) this->storage = nullptr;
 	}
 
-	const double LiteDriver::GetDoubleFromRow(const Storage& vec, const std::string s) {
-		for (auto& tmp : vec)
-			for (auto& j : tmp) if (strcmp(s.c_str(), j.name.get()) == 0) {
-				if (isDouble(j.value.get())) return std::stod(j.value.get());
+	const double LiteDriver::getDoubleFromRow(const Storage& vec, const std::string s, const int row) {
+		if (row < 0) throw new std::out_of_range("Out of range");
+		for (auto& tmp : vec.at(row))
+			if (strcmp(s.c_str(), tmp.name.get()) == 0) {
+				if (isDouble(tmp.value.get())) return std::stod(tmp.value.get());
 				throw new std::exception("Unable to convert string to numeral value");
 			}
 		throw new std::exception("Column doesn't exist");
 	}
 
-	const std::string LiteDriver::GetStringFromRow(const Storage& vec, const std::string s) {
-		for (auto& tmp : vec)
-			for (auto& j : tmp) if (strcmp(s.c_str(), j.name.get()) == 0) return std::string(j.value.get());
+	const std::string LiteDriver::getStringFromRow(const Storage& vec, const std::string s, const int row) {
+		if (row < 0) throw new std::out_of_range("Out of range");
+		for (auto& tmp : vec.at(row))
+			if (strcmp(s.c_str(), tmp.name.get()) == 0) return std::string(tmp.value.get());
 		throw new std::exception("Column doesn't exist");
 	}
 

@@ -32,7 +32,7 @@ namespace Match
                 Match::Team result = this->Fight();
                 if (this->GetAttackingTeam().GetName() == result.GetName())
                 {
-                       if (this->GetCurrentZone() == ((this->GetAttackingTeam().GetPrefferedZone() == GOAL_A) ? GOAL_B : GOAL_A))
+                       if (this->GetCurrentZone() == ((this->GetAttackingTeam().GetPrefferedZone() == GATE_A) ? GATE_B : GATE_A))
                         {
                             Match::Team& team = this->GetAttackingTeam();
                             team.SetScore(team.GetScore() + 1);
@@ -40,7 +40,7 @@ namespace Match
                             this->SwapTeams();
                         }
                         else {
-                            if (static_cast<Zone>(this->GetAttackingTeam().GetPrefferedZone()) == GOAL_A) {
+                            if (static_cast<Zone>(this->GetAttackingTeam().GetPrefferedZone()) == GATE_A) {
                                 this->SetCurrentZone(static_cast<Zone>(static_cast<int>(this->GetCurrentZone()) + 1));
                             }
                             else {
@@ -63,7 +63,7 @@ namespace Match
         {
             case GATE_B:
             case GATE_A:
-                x = this->Compare(this->GetAttackingTeam().GetOffensiveSkill(), this->GetDefendingTeam().GetGoalKeeper().GetRating());
+                x = this->Compare(this->GetAttackingTeam().GetShootingPlayer().GetRating(), this->GetDefendingTeam().GetGoalKeeper().GetRating());
                 break;
             case MIDFIELD:
                 x = this->Compare(this->GetAttackingTeam().GetMidFieldSkill(), this->GetDefendingTeam().GetMidFieldSkill());
