@@ -4,11 +4,42 @@
          "isCompiledLang":true,
          "path":"projects\\CPP",
          "projectFile":"VS_SD.sln",
-         "isRelative":true
+         "isRelative":true,
+         "fakeThreading": false
       },
       "translator":{
          "path":"translators\\MSBuild\\Current\\Bin\\msbuild.exe",
          "arguments":"/p:Configuration=Release /p:Platform=x64 /fl /flp:logfile=%projectdir%build.log;verbosity=normal",
+         "standardOutput":false,
+         "isRelative":true
+      }
+   },
+   "PHP":{
+      "project":{
+         "isCompiledLang":false,
+         "path":"projects\\PHP",
+         "projectFile":"VS_SD.php",
+         "isRelative":true,
+         "fakeThreading": false
+      },
+      "translator":{
+         "path":"translators\\PHP\\php.exe",
+         "arguments":"",
+         "standardOutput":false,
+         "isRelative":true
+      }
+   },
+   "JS":{
+      "project":{
+         "isCompiledLang":false,
+         "path":"projects\\NODE",
+         "projectFile":"VS_SD.js",
+         "isRelative":true,
+         "fakeThreading": false
+      },
+      "translator":{
+         "path":"translators\\NodeJs\\node.exe",
+         "arguments":"",
          "standardOutput":false,
          "isRelative":true
       }

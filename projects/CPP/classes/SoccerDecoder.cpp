@@ -20,9 +20,11 @@ SoccerDecoder::SoccerDecoder(int argc, char* argv[]) {
 
 				db.execSingleStmt(SQL_LAYOUTA, true);
 				int layoutA = db.getIntegerFromRow(db.getStorageRefference(), "layout", 0);
+				this->layoutA = static_cast<Match::Team::Formations>(layoutA);
 
 				db.execSingleStmt(SQL_LAYOUTB, true);
 				int layoutB = db.getIntegerFromRow(db.getStorageRefference(), "layout", 0);
+				this->layoutB = static_cast<Match::Team::Formations>(layoutB);
 
 				db.execSingleStmt(SQL_PLAYERSA, true);
 				this->SetPlayersA(this->FillPlayersSQLITE(db, layoutA));
@@ -72,31 +74,34 @@ SoccerDecoder::SoccerDecoder(int argc, char* argv[]) {
 			}
 		}
 	} else { // Default sample data
+		this->layoutA = Match::Team::Formations::_4_3_3;
+		this->layoutB = Match::Team::Formations::_4_3_3;
+
 		this->SetPlayersA({
 			FieldUnit::Player(8.5, 10.0, 34, 1.0, "Kanker", FieldUnit::Player::PositionType::MIDFIELDER),
-			FieldUnit::Player(8.5, 10.0, 34, 1.0, "asda", FieldUnit::Player::PositionType::MIDFIELDER),
-			FieldUnit::Player(8.5, 10.0, 34, 1.0, "Epfdgfdgfgd", FieldUnit::Player::PositionType::MIDFIELDER),
-			FieldUnit::Player(8.5, 10.0, 34, 4.0, "Epxcxxcxcic", FieldUnit::Player::PositionType::MIDFIELDER),
+			FieldUnit::Player(6.5, 10.0, 34, 1.0, "asda", FieldUnit::Player::PositionType::MIDFIELDER),
+			FieldUnit::Player(6.5, 10.0, 34, 10.0, "Epfdgfdgfgd", FieldUnit::Player::PositionType::MIDFIELDER),
+			FieldUnit::Player(7.5, 10.0, 34, 40.0, "Epxcxxcxcic", FieldUnit::Player::PositionType::MIDFIELDER),
 			FieldUnit::Player(8.5, 10.0, 34, 4.0, "Eqwqwwqwqwpic", FieldUnit::Player::PositionType::STRIKERS),
-			FieldUnit::Player(8.5, 10.0, 34, 4.0, "Epicgfdgfdgfdg", FieldUnit::Player::PositionType::STRIKERS),
-			FieldUnit::Player(8.5, 10.0, 34, 4.0, "Eczxxczxczxczpic", FieldUnit::Player::PositionType::STRIKERS),
-			FieldUnit::Player(8.5, 10.0, 34, 4.0, "Epqqqqqqqqqic", FieldUnit::Player::PositionType::DEFENDER),
-			FieldUnit::Player(8.5, 10.0, 34, 4.0, "Epaaaaaaaaic", FieldUnit::Player::PositionType::DEFENDER),
-			FieldUnit::Player(8.5, 10.0, 34, 4.0, "Epzzzzzzzzzzic", FieldUnit::Player::PositionType::DEFENDER) });
-		this->SetGoalKeeperA(FieldUnit::Player(8.5, 10.0, 34, 74.0, "Pot", FieldUnit::Player::PositionType::GOALKEEPER));
+			FieldUnit::Player(8.5, 10.0, 34, 40.0, "Epicgfdgfdgfdg", FieldUnit::Player::PositionType::STRIKERS),
+			FieldUnit::Player(6.5, 10.0, 34, 40.0, "Eczxxczxczxczpic", FieldUnit::Player::PositionType::STRIKERS),
+			FieldUnit::Player(0.5, 10.0, 34, 4.0, "Epqqqqqqqqqic", FieldUnit::Player::PositionType::DEFENDER),
+			FieldUnit::Player(4.5, 10.0, 34, 4.0, "Epaaaaaaaaic", FieldUnit::Player::PositionType::DEFENDER),
+			FieldUnit::Player(8.5, 10.0, 34, 40.0, "Epzzzzzzzzzzic", FieldUnit::Player::PositionType::DEFENDER) });
+		this->SetGoalKeeperA(FieldUnit::Player(9.5, 10.0, 34, 74.0, "Pot", FieldUnit::Player::PositionType::GOALKEEPER));
 
 		this->SetPlayersB({
 			FieldUnit::Player(8.5, 10.0, 34, 1.0, "Kanker", FieldUnit::Player::PositionType::MIDFIELDER),
 			FieldUnit::Player(8.5, 10.0, 34, 1.0, "asda", FieldUnit::Player::PositionType::MIDFIELDER),
-			FieldUnit::Player(8.5, 10.0, 34, 1.0, "Epfdgfdgfgd", FieldUnit::Player::PositionType::MIDFIELDER),
-			FieldUnit::Player(8.5, 10.0, 34, 4.0, "Epxcxxcxcic", FieldUnit::Player::PositionType::MIDFIELDER),
+			FieldUnit::Player(6.5, 10.0, 34, 10.0, "Epfdgfdgfgd", FieldUnit::Player::PositionType::MIDFIELDER),
+			FieldUnit::Player(8.5, 6.0, 34, 4.0, "Epxcxxcxcic", FieldUnit::Player::PositionType::MIDFIELDER),
 			FieldUnit::Player(8.5, 10.0, 34, 4.0, "Eqwqwwqwqwpic", FieldUnit::Player::PositionType::STRIKERS),
-			FieldUnit::Player(8.5, 10.0, 34, 4.0, "Epicgfdgfdgfdg", FieldUnit::Player::PositionType::STRIKERS),
+			FieldUnit::Player(7.5, 10.0, 34, 4.0, "Epicgfdgfdgfdg", FieldUnit::Player::PositionType::STRIKERS),
 			FieldUnit::Player(8.5, 10.0, 34, 4.0, "Eczxxczxczxczpic", FieldUnit::Player::PositionType::STRIKERS),
-			FieldUnit::Player(8.5, 10.0, 34, 4.0, "Epqqqqqqqqqic", FieldUnit::Player::PositionType::DEFENDER),
-			FieldUnit::Player(8.5, 10.0, 34, 4.0, "Epaaaaaaaaic", FieldUnit::Player::PositionType::DEFENDER),
+			FieldUnit::Player(8.5, 7.0, 34, 4.0, "Epqqqqqqqqqic", FieldUnit::Player::PositionType::DEFENDER),
+			FieldUnit::Player(5.5, 10.0, 34, 4.0, "Epaaaaaaaaic", FieldUnit::Player::PositionType::DEFENDER),
 			FieldUnit::Player(8.5, 10.0, 34, 4.0, "Epzzzzzzzzzzic", FieldUnit::Player::PositionType::DEFENDER) });
-		this->SetGoalKeeperB(FieldUnit::Player(8.5, 10.0, 34, 74.0, "Nod", FieldUnit::Player::PositionType::GOALKEEPER));
+		this->SetGoalKeeperB(FieldUnit::Player(7.5, 10.0, 34, 74.0, "Nod", FieldUnit::Player::PositionType::GOALKEEPER));
 
 		this->faceoffs = DEFAULT_MATCHES;
 	}
@@ -123,8 +128,8 @@ void SoccerDecoder::Func(int chunk)
 {
 	srand(time(NULL));
 
-	Match::Team a("Attackers", Match::Team::FieldType::AWAY, this->GetPlayersA(), this->GetGoalKeeperA(), Match::Team::Formations::_4_4_2);
-	Match::Team b("Defenders", Match::Team::FieldType::AWAY, this->GetPlayersB(), this->GetGoalKeeperB(), Match::Team::Formations::_4_4_2);
+	Match::Team a("Attackers", Match::Team::FieldType::AWAY, this->GetPlayersA(), this->GetGoalKeeperA(), this->layoutA);
+	Match::Team b("Defenders", Match::Team::FieldType::AWAY, this->GetPlayersB(), this->GetGoalKeeperB(), this->layoutB);
 
 	for (size_t i = 0; i < chunk; i++) {
 		Match::FaceOff PlayOff(a, b);
@@ -159,9 +164,9 @@ std::vector<FieldUnit::Player> SoccerDecoder::FillPlayersSQLITE(DB::LiteDriver& 
 			}
 			default: abort();
 			}
+			row++;
 		}
 		layout /= 10;
-		row++;
 	}
 	return players;
 }

@@ -16,6 +16,7 @@
 #include "headers/mysql_error.h"
 #include "headers/mysql_connection.h"
 #include "headers/cppconn/resultset.h"
+#include <thread>
 
 #define CONFIG "config.json"
 #define TEAM_COUNT 2
@@ -23,82 +24,165 @@
 #define POSITION_TYPE_COUNT 4
 #define JSON_PRETTY_PRINT 4
 #define POSITION_PLAYER_COUNT 5
+#define SIMULATION_COUNT 1000
 #define BUFSIZE 4096
 
 using JSON = nlohmann::json;
 
 std::string spaceString(std::string& rStr, std::string rProp = std::string(""));
-DWORD runTerminal(const char* pArg, bool bHasOpenPipes);
+DWORD runTerminal(const char* pArg, bool bStandardOutput, bool useIndexedHandle = false, int index = -1);
 JSON runAll();
 
 bool checkBuildLog(const std::string& rLogPath);
 void setupConfig();
 void processConfig();
 void fatalExit(std::string str);
+std::vector<int> chunks(const int count);
 void replaceAll(std::string& rStr, const std::string& rFrom, const std::string& rTo);
 const std::string& addQuotes(std::string& rStr, bool bAppendComma = true);
 void prepareAllDatabases();
 
 HANDLE g_hStdin_r = NULL;
 HANDLE g_hStdout_w = NULL;
+HANDLE* g_StdinArray;
+HANDLE* g_StdoutArray;
+
 JSON g_cfg = NULL;
+auto threadCount = std::thread::hardware_concurrency();
 std::unordered_map<std::string, std::pair<std::string, std::string>> g_umExecuteables;
-std::unordered_map<int, std::string> g_umNames = {std::make_pair(0,"SQLITE"), std::make_pair(1,"MYSQL"), std::make_pair(2,"MARIADB"), std::make_pair(3,"MSSQL")};
+std::unordered_map<std::string, bool> g_umExecuteableFakeThreading; // Quick fix 
+std::unordered_map<int, std::string> g_umNames = {std::make_pair(0,"SQLITE"), std::make_pair(1,"MYSQL"), std::make_pair(2,"MARIADB"), std::make_pair(3,"ORACLE") /* I might add oracle if I have enough time */};
 
 namespace fs = std::filesystem;
 
 int main()
 {
+	g_StdinArray = new HANDLE[threadCount];
+	g_StdoutArray = new HANDLE[threadCount];
+
 	prepareAllDatabases();
 	setupConfig();
 	processConfig();
-	std::cout << runAll().dump(JSON_PRETTY_PRINT) << std::endl;
+
+	std::string file = fs::current_path().string().append("\\output.json");
+	remove(file.c_str()); // No real need to check for return value since either it gets deleted or it didn't cuz it wasn't even present in the directory
+	if (!std::filesystem::exists(file)) { // Sanity check
+		std::string str = runAll().dump(JSON_PRETTY_PRINT);
+		std::fstream fs;
+		std::cout << std::endl << "\x1B[93mDumping results to file... \033[0m\t\t" << std::endl;
+		fs.open(file, std::ios::out);
+		fs.write(str.c_str(), str.length());
+		fs.close();
+		std::cout << "\x1B[36mDumping results successfully finished\033[0m\t\t" << std::endl;
+	}
+
+	delete g_StdoutArray;
+	delete g_StdinArray;
 	return EXIT_SUCCESS;
 }
 
 JSON runAll() {
 	JSON data;
-	CHAR chBuf[BUFSIZE];
-	DWORD dwRead = NULL;
 
 	std::cout << std::endl << "\x1B[93mRunning all processes... \033[0m\t\t" << std::endl;
 	for (auto& exec : g_umExecuteables) {
 		std::string cmd;
-		std::string result;
 
 		std::cout << std::endl << "\x1B[93mProcess: " << exec.first << " ----- Status:\033[0m\t\t \x1B[36mrunning\033[0m\t\t" << std::endl;
 
 		if (exec.second.second.size() != 0) {
-			cmd = spaceString(exec.second.first, exec.second.second);
+			cmd = spaceString(exec.second.second, exec.second.first);
 		} else {
 			cmd = exec.second.first;
 		}
-
+		std::atomic<int> aw, bw, dw, duration;
 		for (int i = 0; i < NUMBER_OF_ENGINES; ++i) {
 			std::string tempCmd(cmd);
-			if (i == 0) { // Sqlite has exception because I feel like hard coding the file path is bad idea ( no shit ), the other database systems will be run on localhost and I can't imagine anyone wanting to test this somewhere else except their own pc, worst case scenario they will do a little bit of editing
-				tempCmd.append((std::stringstream() << " 1000 " << std::to_string(i) << " " << fs::current_path().string().append("\\data.sqlite")).str());
-			} else {
-				tempCmd.append((std::stringstream() << " 1000 " << std::to_string(i)).str());
-			}
-			if (runTerminal(tempCmd.c_str(), true) == 0) {
-				std::cout << "\x1B[93mProcess: " << exec.first << " " << g_umNames.at(i) << " ----- Status:\033[0m\t \x1B[32mfinished\033[0m\t\t" << std::endl;
-				if (!ReadFile(g_hStdin_r, chBuf, BUFSIZE, &dwRead, NULL)) {
-					fatalExit("Failed to read data from pipe");
+			if (g_umExecuteableFakeThreading.at(exec.first)) {
+				std::vector<std::thread> threads;
+				auto vec = chunks(SIMULATION_COUNT);
+				aw = bw = dw = duration = 0;
+				for (int j = 0; j < vec.size(); ++j) {
+					threads.push_back(std::thread([&](int j)
+						{
+							std::string result;
+							CHAR chBuf[BUFSIZE];
+							DWORD dwRead = NULL;
+
+							if (i == 0) { // Sqlite has an exception because I feel like hard coding the file path is bad idea ( no shit ), the other database systems will be run on localhost and I can't imagine anyone wanting to test this somewhere else except their own pc, worst case scenario they will do a little bit of editing
+								tempCmd.append((std::stringstream() << " " << vec[j] << " " << std::to_string(i) << " " << fs::current_path().string().append("\\data.sqlite")).str());
+							}
+							else {
+								tempCmd.append((std::stringstream() << " " << vec[j] << " " << std::to_string(i)).str());
+							}
+
+							if (runTerminal(tempCmd.c_str(), true, true, j) == 0) {
+								if (!ReadFile(g_StdinArray[j], chBuf, BUFSIZE, &dwRead, NULL)) {
+									fatalExit("Failed to read data from pipe");
+								}
+								result.resize(static_cast<int>(dwRead)); // Why not account for nullbyte ? Because it would have to get removed anyway
+								memcpy_s(result.data(), static_cast<int>(dwRead), chBuf, static_cast<int>(dwRead));
+								result = result.substr(0, result.find("<!-!>", 0)); // Used as marker for cleanup
+								auto data = JSON::parse(result);
+								aw += data.find("a").value().get<int>();
+								bw += data.find("b").value().get<int>();
+								dw += data.find("draws").value().get<int>();
+								duration += data.find("duration").value().get<int>();
+							}
+							else {
+								throw new std::exception("Fatal error during batch job execution..");
+							}
+						}, j));
+					std::this_thread::sleep_for(std::chrono::milliseconds(1)); // Prevent collisions
 				}
-				result.resize(static_cast<int>(dwRead)); // Why not account for nullbyte ? Because it would have to get removed anyway
-				memcpy_s(result.data(), static_cast<int>(dwRead), chBuf, static_cast<int>(dwRead));
-				data[g_umNames.at(i)][exec.first] = JSON::parse(result);
+					
+				try{
+					for (auto& t : threads)
+						if (t.joinable())
+							t.join();
+				} catch (std::exception& e) {
+					fatalExit(e.what());
+				}
+				if (g_umNames.at(i) == "MYSQL") {
+					std::cout << "\x1B[93mProcess: " << exec.first << " " << g_umNames.at(i) << " ------ Status:\033[0m\t \x1B[32mfinished\033[0m\t\t" << std::endl;
+				}
+				else std::cout << "\x1B[93mProcess: " << exec.first << " " << g_umNames.at(i) << " ----- Status:\033[0m\t \x1B[32mfinished\033[0m\t\t" << std::endl; // Why ? Simple answear hard coded pretty print. I may clean it up later
+				data[g_umNames.at(i)][exec.first] = JSON::parse((std::stringstream() << "{\"a\":" << aw << "," << "\"b\":" << bw << "," << "\"draws\":" << dw << "," << "\"duration\":" << duration << "}"));
 			}
 			else {
-				fatalExit("Process exited with unexcepted value.. Aborting all actions..");
+				CHAR chBuf[BUFSIZE];
+				DWORD dwRead = NULL;
+				std::string result;
+
+				if (i == 0) { // Sqlite has an exception because I feel like hard coding the file path is bad idea ( no shit ), the other database systems will be run on localhost and I can't imagine anyone wanting to test this somewhere else except their own pc, worst case scenario they will do a little bit of editing
+					tempCmd.append((std::stringstream() << " " << SIMULATION_COUNT << " " << std::to_string(i) << " " << fs::current_path().string().append("\\data.sqlite")).str());
+				}
+				else {
+					tempCmd.append((std::stringstream() << " " << SIMULATION_COUNT << " " << std::to_string(i)).str());
+				}
+				if (runTerminal(tempCmd.c_str(), true) == 0) {
+					if (g_umNames.at(i) == "MYSQL") {
+						std::cout << "\x1B[93mProcess: " << exec.first << " " << g_umNames.at(i) << " ------ Status:\033[0m\t \x1B[32mfinished\033[0m\t\t" << std::endl;
+					}
+					else std::cout << "\x1B[93mProcess: " << exec.first << " " << g_umNames.at(i) << " ----- Status:\033[0m\t \x1B[32mfinished\033[0m\t\t" << std::endl; // Why ? Simple answear hard coded pretty print. I may clean it up later
+					if (!ReadFile(g_hStdin_r, chBuf, BUFSIZE, &dwRead, NULL)) {
+						fatalExit("Failed to read data from pipe");
+					}
+					result.resize(static_cast<int>(dwRead)); // Why not account for nullbyte ? Because it would have to get removed anyway
+					memcpy_s(result.data(), static_cast<int>(dwRead), chBuf, static_cast<int>(dwRead));
+					result = result.substr(0, result.find("<!-!>", 0)); // Used as marker for cleanup
+					data[g_umNames.at(i)][exec.first] = JSON::parse(result);
+				}
+				else {
+					fatalExit("Process exited with unexcepted value.. Aborting all actions..");
+				}
 			}
 		}
 	}
 	return data;
 }
 
-DWORD runTerminal(const char* pArg, bool bStandardOutput) {
+DWORD runTerminal(const char* pArg, bool bStandardOutput, bool useIndexedHandle, int index){
 	STARTUPINFOA startInfo;
 	PROCESS_INFORMATION procInfo;
 	SECURITY_ATTRIBUTES securityAttr;
@@ -110,18 +194,33 @@ DWORD runTerminal(const char* pArg, bool bStandardOutput) {
 	securityAttr.nLength = sizeof(SECURITY_ATTRIBUTES);
 	securityAttr.bInheritHandle = TRUE;
 	securityAttr.lpSecurityDescriptor = NULL;
-
-	if (!CreatePipe(&g_hStdin_r, &g_hStdout_w, &securityAttr, 0))
-		fatalExit("Failed to create stdout pipe");
-	if (!SetHandleInformation(g_hStdin_r, HANDLE_FLAG_INHERIT, 0))
-		fatalExit("Failed to set stdout handle information");
-
 	startInfo.cb = sizeof(STARTUPINFO);
-	if (bStandardOutput) {
-		startInfo.hStdError = g_hStdout_w;
-		startInfo.hStdOutput = g_hStdout_w;
-		startInfo.hStdInput = g_hStdin_r;
-		startInfo.dwFlags |= STARTF_USESTDHANDLES;
+
+	if (!useIndexedHandle) {
+		if (!CreatePipe(&g_hStdin_r, &g_hStdout_w, &securityAttr, 0))
+			fatalExit("Failed to create stdout pipe");
+		if (!SetHandleInformation(g_hStdin_r, HANDLE_FLAG_INHERIT, 0))
+			fatalExit("Failed to set stdout handle information");
+
+		if (bStandardOutput) {
+			startInfo.hStdError = g_hStdout_w;
+			startInfo.hStdOutput = g_hStdout_w;
+			startInfo.hStdInput = g_hStdin_r;
+			startInfo.dwFlags |= STARTF_USESTDHANDLES;
+		}
+	}
+	else {
+		if (!CreatePipe(&g_StdinArray[index], &g_StdoutArray[index], &securityAttr, 0))
+			fatalExit("Failed to create stdout pipe");
+		if (!SetHandleInformation(g_StdinArray[index], HANDLE_FLAG_INHERIT, 0))
+			fatalExit("Failed to set stdout handle information");
+
+		if (bStandardOutput) {
+			startInfo.hStdError = g_StdoutArray[index];
+			startInfo.hStdOutput = g_StdoutArray[index];
+			startInfo.hStdInput = g_StdinArray[index];
+			startInfo.dwFlags |= STARTF_USESTDHANDLES;
+		}
 	}
 
 	if (!CreateProcessA(NULL,
@@ -141,7 +240,6 @@ DWORD runTerminal(const char* pArg, bool bStandardOutput) {
 
 		CloseHandle(procInfo.hProcess);
 		CloseHandle(procInfo.hThread);
-		CloseHandle(g_hStdout_w);
 		return dwExitCode;
 	}
 	return EXIT_FAILURE;
@@ -155,6 +253,19 @@ const std::string& addQuotes(const std::string& rStr, bool bAppendComma = true) 
 		s.append(",");
 	}
 	return rStr;
+}
+
+std::vector<int> chunks(const int count)
+{
+	int total = 0;
+	std::vector<int> chunk;
+	for (size_t i = 0; i < threadCount; i++) {
+		chunk.push_back(std::floor(count / (threadCount + 1)));
+		total += std::floor(count / (threadCount + 1));
+	}
+	if (std::floor(count) - total != 0)
+		chunk.push_back(count - total);
+	return chunk;
 }
 
 double randomDouble(double lowerBound, double upperBound){
@@ -227,7 +338,7 @@ void prepareAllDatabases() {
 					<< addQuotes(std::to_string(randomDouble(8, 10)))
 					<< addQuotes(std::to_string(randomDouble(12, 20)))
 					<< addQuotes(std::to_string(randomDouble(15, 40)))
-					<< addQuotes(std::to_string(randomDouble(100, 200)))
+					<< addQuotes(std::to_string(randomDouble(20, 100)))
 					<< addQuotes("Benchmark Player " + std::to_string(i + j + k))
 					<< addQuotes(std::to_string(j), false)
 					<< ")").str());
@@ -235,7 +346,7 @@ void prepareAllDatabases() {
 		}
 	}
 
-	std::cout << "\x1B[93mDatabase seeder: ----- Status:\033[0m\t\t \x1B[32mfinished\033[0m\t\t" << std::endl;
+	std::cout << "\x1B[93mDatabase seeder: ----- Status:\033[0m\t\t \x1B[32mfinished\033[0m\t\t" << std::endl << std::endl;
 
 	delete stmtMARIADB;
 	delete stmtMYSQL;
@@ -344,6 +455,7 @@ void processConfig() {
 					} else {
 						g_umExecuteables[it.key()] = std::move(std::pair<std::string, std::string>(execPath, translatorFullPath));
 					}
+					g_umExecuteableFakeThreading[it.key()] = jProject.find("fakeThreading").value().get<bool>();
 					hasSource = true; // In case someone attempts to run this on empty dir or on a directory where specified source file is not present
 					std::cout << "\x1B[93mProject: " << it.key() << " ----- Executeable:\033[0m\t\t \x1B[32msuccessfully found\033[0m\t\t" << std::endl;
 					break; // Sometimes finds same exe twice ?

@@ -1,10 +1,10 @@
 #include "../headers/Player.hpp"
-
+#include <iostream>
 namespace FieldUnit
 {
     Player::Player(double rating, double stamina, int age, double experience, std::string name, PositionType position)
     {
-        if (stamina < 1 && stamina > 20 && experience < 1 && experience > 100) {
+        if (stamina < 0 && stamina > 20 || experience < 0 && experience > 100) {
             throw new std::exception("Stamina or experience is not within allowed ranges");
         }
         this->SetRating(rating);

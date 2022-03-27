@@ -68,6 +68,8 @@
 		std::chrono::milliseconds duration;
 		std::vector<FieldUnit::Player> APlayers;
 		std::vector<FieldUnit::Player> BPlayers;
+		Match::Team::Formations layoutA;
+		Match::Team::Formations layoutB;
 		FieldUnit::Player GoalKeeperA;
 		FieldUnit::Player GoalKeeperB;
 		unsigned int threadCount;

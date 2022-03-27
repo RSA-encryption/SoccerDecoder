@@ -48,28 +48,28 @@ namespace Match
 	}
 	void Team::CalculateTeamRating() 
 	{
-		double GK = 0, D = 0, M = 0, S = 0;
+		double D = 0, M = 0, S = 0;
 		bool isHomeField = this->GetFieldType() == Match::Team::FieldType::HOME ? true : false;
 		for (int i = 0; i < this->GetPlayerCount(); i++)
 		{
 			FieldUnit::Player p = this->GetPlayerByIndex(i);
 			switch (p.GetPosition())
 			{
-			case FieldUnit::Player::PositionType::GOALKEEPER:
-				GK = p.GetRating();
-				break;
 			case FieldUnit::Player::PositionType::MIDFIELDER:
 			{
-				M += p.GetRating() + (isHomeField) ? 0.1 : 0;
+				M += p.GetRating();
+				M += (isHomeField) ? 0.1 : 0;
 				break;
 			}
 			case FieldUnit::Player::PositionType::STRIKERS:
 			{
-				S += p.GetRating() + (isHomeField) ? 0.1 : 0;
+				S += p.GetRating();
+				S += (isHomeField) ? 0.1 : 0;
 				break;
 			}
 			case FieldUnit::Player::PositionType::DEFENDER:
 				D += p.GetRating() + (isHomeField) ? 0.1 : 0;
+				D += (isHomeField) ? 0.1 : 0;
 				break;
 			default:
 				break;
