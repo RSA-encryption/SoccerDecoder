@@ -20,7 +20,7 @@
          "path":"projects\\PHP",
          "projectFile":"VS_SD.php",
          "isRelative":true,
-         "fakeThreading": false
+         "fakeThreading": true
       },
       "translator":{
          "path":"translators\\PHP\\php.exe",
@@ -35,7 +35,7 @@
          "path":"projects\\NODE",
          "projectFile":"VS_SD.js",
          "isRelative":true,
-         "fakeThreading": false
+         "fakeThreading": true
       },
       "translator":{
          "path":"translators\\NodeJs\\node.exe",

@@ -95,13 +95,13 @@ JSON runAll() {
 		} else {
 			cmd = exec.second.first;
 		}
-		std::atomic<int> aw, bw, dw, duration;
 		for (int i = 0; i < NUMBER_OF_ENGINES; ++i) {
 			std::string tempCmd(cmd);
 			if (g_umExecuteableFakeThreading.at(exec.first)) {
 				std::vector<std::thread> threads;
+				std::atomic<int> aw = 0, bw = 0, dw = 0;
+				auto t = std::chrono::high_resolution_clock::now();
 				auto vec = chunks(SIMULATION_COUNT);
-				aw = bw = dw = duration = 0;
 				for (int j = 0; j < vec.size(); ++j) {
 					threads.push_back(std::thread([&](int j)
 						{
@@ -111,8 +111,7 @@ JSON runAll() {
 
 							if (i == 0) { // Sqlite has an exception because I feel like hard coding the file path is bad idea ( no shit ), the other database systems will be run on localhost and I can't imagine anyone wanting to test this somewhere else except their own pc, worst case scenario they will do a little bit of editing
 								tempCmd.append((std::stringstream() << " " << vec[j] << " " << std::to_string(i) << " " << fs::current_path().string().append("\\data.sqlite")).str());
-							}
-							else {
+							} else {
 								tempCmd.append((std::stringstream() << " " << vec[j] << " " << std::to_string(i)).str());
 							}
 
@@ -127,15 +126,12 @@ JSON runAll() {
 								aw += data.find("a").value().get<int>();
 								bw += data.find("b").value().get<int>();
 								dw += data.find("draws").value().get<int>();
-								duration += data.find("duration").value().get<int>();
-							}
-							else {
+							} else {
 								throw new std::exception("Fatal error during batch job execution..");
 							}
 						}, j));
 					std::this_thread::sleep_for(std::chrono::milliseconds(1)); // Prevent collisions
 				}
-					
 				try{
 					for (auto& t : threads)
 						if (t.joinable())
@@ -143,10 +139,14 @@ JSON runAll() {
 				} catch (std::exception& e) {
 					fatalExit(e.what());
 				}
+
+				auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - t).count();
+
 				if (g_umNames.at(i) == "MYSQL") {
 					std::cout << "\x1B[93mProcess: " << exec.first << " " << g_umNames.at(i) << " ------ Status:\033[0m\t \x1B[32mfinished\033[0m\t\t" << std::endl;
 				}
 				else std::cout << "\x1B[93mProcess: " << exec.first << " " << g_umNames.at(i) << " ----- Status:\033[0m\t \x1B[32mfinished\033[0m\t\t" << std::endl; // Why ? Simple answear hard coded pretty print. I may clean it up later
+				
 				data[g_umNames.at(i)][exec.first] = JSON::parse((std::stringstream() << "{\"a\":" << aw << "," << "\"b\":" << bw << "," << "\"draws\":" << dw << "," << "\"duration\":" << duration << "}"));
 			}
 			else {
