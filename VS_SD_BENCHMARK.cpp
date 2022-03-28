@@ -24,7 +24,7 @@
 #define POSITION_TYPE_COUNT 4
 #define JSON_PRETTY_PRINT 4
 #define POSITION_PLAYER_COUNT 5
-#define SIMULATION_COUNT 1000
+#define SIMULATION_COUNT 10000
 #define BUFSIZE 4096
 
 using JSON = nlohmann::json;
@@ -48,6 +48,7 @@ HANDLE* g_StdinArray;
 HANDLE* g_StdoutArray;
 
 JSON g_cfg = NULL;
+int simulationCount = NULL;
 auto threadCount = std::thread::hardware_concurrency();
 std::unordered_map<std::string, std::pair<std::string, std::string>> g_umExecuteables;
 std::unordered_map<std::string, bool> g_umExecuteableFakeThreading; // Quick fix 
@@ -101,7 +102,7 @@ JSON runAll() {
 				std::vector<std::thread> threads;
 				std::atomic<int> aw = 0, bw = 0, dw = 0;
 				auto t = std::chrono::high_resolution_clock::now();
-				auto vec = chunks(SIMULATION_COUNT);
+				auto vec = chunks(simulationCount);
 				for (int j = 0; j < vec.size(); ++j) {
 					threads.push_back(std::thread([&](int j)
 						{
@@ -155,10 +156,10 @@ JSON runAll() {
 				std::string result;
 
 				if (i == 0) { // Sqlite has an exception because I feel like hard coding the file path is bad idea ( no shit ), the other database systems will be run on localhost and I can't imagine anyone wanting to test this somewhere else except their own pc, worst case scenario they will do a little bit of editing
-					tempCmd.append((std::stringstream() << " " << SIMULATION_COUNT << " " << std::to_string(i) << " " << fs::current_path().string().append("\\data.sqlite")).str());
+					tempCmd.append((std::stringstream() << " " << simulationCount << " " << std::to_string(i) << " " << fs::current_path().string().append("\\data.sqlite")).str());
 				}
 				else {
-					tempCmd.append((std::stringstream() << " " << SIMULATION_COUNT << " " << std::to_string(i)).str());
+					tempCmd.append((std::stringstream() << " " << simulationCount << " " << std::to_string(i)).str());
 				}
 				if (runTerminal(tempCmd.c_str(), true) == 0) {
 					if (g_umNames.at(i) == "MYSQL") {
@@ -399,12 +400,20 @@ void setupConfig() {
 	} catch (std::exception& e) {
 		fatalExit(e.what());
 	}
+
+	try { // There is 100% better way of doing this but I am speedrunning it at this point
+		simulationCount = g_cfg.find("simulations").value().get<int>();
+	}
+	catch (std::exception& e) {
+		simulationCount = SIMULATION_COUNT;
+	}
 }
 
 void processConfig() {
 	try {
 		std::string workingDirectory(fs::current_path().string().append("\\"));
 		for (JSON::iterator it = g_cfg.begin(); it != g_cfg.end(); ++it) {
+			if (it.key() == "simulations") continue;
 			JSON jProject = JSON(*it).at("project");
 			JSON jTranslator = JSON(*it).at("translator");
 
