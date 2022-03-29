@@ -77,8 +77,8 @@ int main()
 		std::cout << "\x1B[36mDumping results successfully finished\033[0m\t\t" << std::endl;
 	}
 
-	delete g_StdoutArray;
-	delete g_StdinArray;
+	delete[] g_StdoutArray;
+	delete[] g_StdinArray;
 	return EXIT_SUCCESS;
 }
 
