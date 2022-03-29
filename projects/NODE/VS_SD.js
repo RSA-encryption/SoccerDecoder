@@ -180,10 +180,7 @@ class PlayOff {
     }
 
     swapTeams() {
-        let temp = this.defendingTeam;
-        this.defendingTeam = this.attackingTeam;
-        this.attackingTeam = temp;
-        //[this.attackingTeam, this.defendingTeam] = [this.defendingTeam, this.attackingTeam]
+        [this.attackingTeam, this.defendingTeam] = [this.defendingTeam, this.attackingTeam]
     }
 
     isTeamPushing() {
