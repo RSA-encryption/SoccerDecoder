@@ -129,7 +129,7 @@ void SoccerDecoder::Func(int chunk)
 	srand(time(NULL));
 
 	Match::Team a("Attackers", Match::Team::FieldType::AWAY, this->GetPlayersA(), this->GetGoalKeeperA(), this->layoutA);
-	Match::Team b("Defenders", Match::Team::FieldType::AWAY, this->GetPlayersB(), this->GetGoalKeeperB(), this->layoutB);
+	Match::Team b("Defenders", Match::Team::FieldType::HOME, this->GetPlayersB(), this->GetGoalKeeperB(), this->layoutB);
 
 	for (size_t i = 0; i < chunk; i++) {
 		Match::FaceOff PlayOff(a, b);

@@ -69,12 +69,16 @@ namespace Match
 
         Match::Team::FieldType GetFieldType() const { return field; }
         void SetFieldType(Match::Team::FieldType val) { field = val; }
+
+        bool GetCounterOffensive() const { return counterOffensive; }
+        void SetCounterOffensive(bool val) { counterOffensive = val; }
     private:
         double midFieldSkill;
         double offensiveSkill;
         double defensiveSkill;
         double gateDefenseSkill;
         unsigned int score;
+        bool counterOffensive;
 
         FieldType field;
         Formations formation;

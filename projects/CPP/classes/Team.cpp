@@ -14,6 +14,7 @@ namespace Match
 		this->SetPlayers(players);
 		this->SetGoalKeeper(goalKeeper);
 		this->SetFormation(formation);
+		this->SetCounterOffensive(false);
 		this->SetScore(0);
 	}
 	FieldUnit::Player Team::GetPlayerByIndex(int i)
@@ -29,7 +30,7 @@ namespace Match
 	FieldUnit::Player Team::GetShootingPlayer() {
 		std::default_random_engine generator;
 		FieldUnit::Player::PositionType r;
-		if (true) {
+		if (this->GetCounterOffensive()) {
 			std::discrete_distribution<int> distribution{1,3,3,3,2,2,2,2,2,2};
 			r = static_cast<FieldUnit::Player::PositionType>(distribution(generator));
 		} else {

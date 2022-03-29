@@ -30,6 +30,19 @@ namespace Match
             for (size_t j = 0; j < ACTIONS_PER_HALF_TIME; j++)
             {
                 Match::Team result = this->Fight();
+				this->PushToHistory(this->GetCurrentZone());
+				if (this->IsTeamPushing()) {
+					if (result.GetName() == this->GetAttackingTeam().GetName()) {
+						this->GetAttackingTeam().SetCounterOffensive(true);
+					}
+					else {
+                        this->GetDefendingTeam().SetCounterOffensive(true);
+					}
+				}
+				else {
+                    this->GetAttackingTeam().SetCounterOffensive(false);
+                    this->GetDefendingTeam().SetCounterOffensive(false);
+				}
                 if (this->GetAttackingTeam().GetName() == result.GetName())
                 {
                        if (this->GetCurrentZone() == ((this->GetAttackingTeam().GetPrefferedZone() == GATE_A) ? GATE_B : GATE_A))
@@ -55,6 +68,25 @@ namespace Match
                 }
             }
         }
+    }
+
+    void FaceOff::PushToHistory(Zone val) {
+        if (this->history.size() == 3) {
+            std::vector<Zone> inefficiency;
+            inefficiency.insert(inefficiency.begin(), 1, this->history.at(0));
+            inefficiency.insert(inefficiency.begin(), 1, this->history.at(1)); // Insanely inefficient, it's late at night and I don't have the willpower to think rn
+            inefficiency.insert(inefficiency.begin(), 1, val);
+            this->history = std::move(inefficiency);
+        }
+        else this->history.insert(this->history.begin(), 1, val);
+    }
+    bool FaceOff::IsTeamPushing() {
+		if (this->history.size() == 3) {
+			if (static_cast<int>(this->history.at(0)) + 1 == static_cast<int>(this->history.at(1)) && static_cast<int>(this->history.at(1)) + 1 == static_cast<int>(this->history.at(2))) {
+				return true;
+			}
+		}
+		return false;
     }
 
     Match::Team FaceOff::Fight(){

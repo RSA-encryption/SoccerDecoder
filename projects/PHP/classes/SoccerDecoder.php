@@ -51,7 +51,7 @@ class SoccerDecoder
         assert(count($playersA) - 1 == 10 && count($playersB) - 1 == 10);
         
         $this->setAttackingTeam(new \Contest\Team("Attackers", \Contest\FieldType::AWAY, $this->fillPlayers($playersA, $layoutA), new \FieldUnit\Player($playersA[10]['rating'], $playersA[10]['stamina'], $playersA[10]['age'], $playersA[10]['experience'], $playersA[10]['name'], $playersA[10]['position']), $layoutA));
-        $this->setDefendingTeam(new \Contest\Team("Defenders", \Contest\FieldType::AWAY, $this->fillPlayers($playersB, $layoutB), new \FieldUnit\Player($playersB[10]['rating'], $playersB[10]['stamina'], $playersB[10]['age'], $playersB[10]['experience'], $playersB[10]['name'], $playersB[10]['position']), $layoutB));
+        $this->setDefendingTeam(new \Contest\Team("Defenders", \Contest\FieldType::HOME, $this->fillPlayers($playersB, $layoutB), new \FieldUnit\Player($playersB[10]['rating'], $playersB[10]['stamina'], $playersB[10]['age'], $playersB[10]['experience'], $playersB[10]['name'], $playersB[10]['position']), $layoutB));
     }
 
     private function fillPlayers($result, $layout) {

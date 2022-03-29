@@ -23,6 +23,7 @@ namespace Contest {
         private \Contest\Team $attackingTeam;
         private \Contest\Team $defendingTeam;
         private int $currentZone;
+        private array $history = array();
 
         public function __construct(\Contest\Team $a, \Contest\Team $b)
         {
@@ -46,12 +47,39 @@ namespace Contest {
             $this->setAttackingTeam($tmp);
         }
 
+        private function isTeamPushing() {
+            if (count($this->history) == 3) {
+                if ($this->history[0] + 1 == $this->history[1] && $this->history[1] + 1 == $this->history[2]) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private function pushToHistory(int $zone){
+            array_unshift($this->history, $zone);
+            if(isset($this->history[2])){
+                unset($this->history[2]);
+            }
+        }
+
         public function simulate()
         {
             $this->setupMatch();
             for ($i = 0; $i < HALF_TIME; $i++) {
                 for ($j = 0; $j < ACTIONS_PER_HALF_TIME; $j++) {
                     $result = $this->fight();
+                    $this->pushToHistory($this->getCurrentZone());
+                    if ($this->isTeamPushing()) {
+                        if ($result->getName() == $this->getAttackingTeam()->getname()) {
+                            $this->attackingTeam->setCounterOffensive(true);
+                        } else {
+                            $this->defendingTeam->setCounterOffensive(true);
+                        }
+                    } else {
+                        $this->defendingTeam->setCounterOffensive(false);
+                        $this->attackingTeam->setCounterOffensive(false);
+                    }
                     if ($this->getAttackingTeam()->getname() == $result->getName()) {
                         if ($this->getCurrentZone() == (($this->getAttackingTeam()->getPrefferedZone() == Zone::GATE_A) ? Zone::GATE_B : Zone::GATE_A)) {
                             $team = $this->getAttackingTeam();

@@ -70,6 +70,7 @@ class Team {
         this.players = players;
         this.goalKeeper = goalKeeper;
         this.formation = formation;
+        this.counterOffensive = false;
         this.score = 0;
     }
 
@@ -85,7 +86,7 @@ class Team {
 
     getShootingPlayer() {
         let array = [];
-        if (true) {
+        if (this.counterOffensive) {
             array = [1, 3, 3, 3, 2, 2, 2, 2, 2, 2];
         } else {
             array = [3, 3, 3, 2, 2, 2, 2, 2, 2, 2];
@@ -169,6 +170,7 @@ class PlayOff {
         this.attackingTeam = a;
         b.prefferedZone = zone.GATE_A;
         this.defendingTeam = b;
+        this.history = [];
     }
 
     setupMatch() {
@@ -178,14 +180,41 @@ class PlayOff {
     }
 
     swapTeams() {
-        [this.attackingTeam, this.defendingTeam] = [this.defendingTeam, this.attackingTeam]
+        let temp = this.defendingTeam;
+        this.defendingTeam = this.attackingTeam;
+        this.attackingTeam = temp;
+        //[this.attackingTeam, this.defendingTeam] = [this.defendingTeam, this.attackingTeam]
+    }
+
+    isTeamPushing() {
+        if (this.history.length == 3) {
+            if (this.history[0] + 1 == this.history[1] && this.history[1] + 1 == this.history[2]) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    pushToHistory(val) {
+        this.history.unshift(val);
+        this.history.length = 3;
     }
 
     simulate() {
         this.setupMatch();
         for (let i = 0; i < HALF_TIME; i++) {
             for (let j = 0; j < ACTIONS_PER_HALF_TIME; j++) {
-                let result = this.fight();
+                var result = this.fight();
+                this.pushToHistory(this.currentZone);
+                if (this.isTeamPushing()) {
+                    if (result.name == this.attackingTeam.name) {
+                        this.attackingTeam.counterOffensive = true;
+                    } else {
+                        this.defendingTeam.counterOffensive = true;
+                    }
+                } else {
+                    this.defendingTeam.counterOffensive = this.attackingTeam.counterOffensive = false;
+                }
                 if (this.attackingTeam.name == result.name) {
                     if (this.currentZone == ((this.attackingTeam.prefferedZone == zone.GATE_A) ? zone.GATE_B : zone.GATE_A)) {
                         let team = this.attackingTeam;
@@ -336,7 +365,7 @@ class SoccerDecoder {
                         layoutB = values[1].layoutB,
                         playersA = that.fillPlayers(values[2], layoutA),
                         playersB = that.fillPlayers(values[3], layoutB);
-                    that.attackingTeam = new Team("Attacking Team", field.HOME, playersA, new Player(values[2]['resultA'][10].rating, values[2]['resultA'][10].stamina, values[2]['resultA'][10].age, values[2]['resultA'][10].experience, values[2]['resultA'][10].name, position.GOALKEEPER), layoutA);
+                    that.attackingTeam = new Team("Attacking Team", field.AWAY, playersA, new Player(values[2]['resultA'][10].rating, values[2]['resultA'][10].stamina, values[2]['resultA'][10].age, values[2]['resultA'][10].experience, values[2]['resultA'][10].name, position.GOALKEEPER), layoutA);
                     that.defendingTeam = new Team("Defending Team", field.HOME, playersB, new Player(values[3]['resultB'][10].rating, values[3]['resultB'][10].stamina, values[3]['resultB'][10].age, values[3]['resultB'][10].experience, values[3]['resultB'][10].name, position.GOALKEEPER), layoutB);
                     conn.close();
                     resolve(that);

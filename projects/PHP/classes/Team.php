@@ -31,6 +31,7 @@ namespace Contest{
         private float $gateDefenseSkill;
         private float $midfieldSkill;
         private int $prefferedZone;
+        private bool $counterOffensive;
         
         public function __construct(string $name, int $field, array $players, \Fieldunit\Player $goalKeeper, int $formation)
         {
@@ -338,6 +339,24 @@ namespace Contest{
         public function setPrefferedZone($prefferedZone)
         {
                 $this->prefferedZone = $prefferedZone;
+        }
+
+                /**
+         * Get the value of counterOffensive
+         */ 
+        public function getCounterOffensive()
+        {
+                return $this->counterOffensive;
+        }
+
+        /**
+         * Set the value of counterOffensive
+         *
+         * @return  self
+         */ 
+        public function setCounterOffensive($counterOffensive)
+        {
+                $this->counterOffensive = $counterOffensive;
         }
 
     }
